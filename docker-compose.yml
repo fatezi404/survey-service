@@ -1,0 +1,53 @@
+services:
+  api:
+    build:
+      dockerfile: ./backend/Dockerfile
+    container_name: api
+    environment:
+      - PYTHONPATH=/code
+    ports:
+      - '8000:8000'
+    command: >
+      sh -c 'alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/code
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/api/v1/healthcheck']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  db:
+    image: postgres
+    container_name: postgres_db
+    environment:
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg-isready -U $DATABASE_USER -d $DATABASE_NAME']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:alpine
+    container_name: redis_server
+    env_file:
+      - .env
+    restart: always
+    expose:
+      - 6379
+
+volumes:
+  postgres_data:
