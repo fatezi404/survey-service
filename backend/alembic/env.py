@@ -3,10 +3,6 @@ import asyncio
 
 from dotenv import load_dotenv
 from logging.config import fileConfig
-
-from repolib import true_values
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
 from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 

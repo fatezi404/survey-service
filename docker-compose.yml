@@ -25,9 +25,9 @@ services:
     image: postgres
     container_name: postgres_db
     environment:
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_NAME=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_NAME=${DATABASE_NAME}
     env_file:
       - .env
     restart: always
@@ -36,7 +36,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg-isready -U $DATABASE_USER -d $DATABASE_NAME']
+      test: ['CMD-SHELL', 'sh -c pg-isready -U $DATABASE_USER -d $DATABASE_NAME']
       interval: 5s
       timeout: 5s
       retries: 10

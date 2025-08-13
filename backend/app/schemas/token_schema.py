@@ -17,3 +17,8 @@ class TokenBase(OrmBaseModel):
 class TokenResponse(OrmBaseModel):
     access_token: str
     refresh_token: str
+
+
+class TokenResponseWithType(OrmBaseModel):
+    access_token: str
+    token_type: str
