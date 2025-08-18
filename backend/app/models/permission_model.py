@@ -3,6 +3,7 @@ from sqlalchemy import Integer, String, JSON
 from sqlalchemy.orm import mapped_column, relationship, Mapped
 
 from app.db.session import Base
+from app.models.association_tables import user_permissions, role_permissions
 
 
 class Permission(Base):
@@ -15,5 +16,5 @@ class Permission(Base):
     action: Mapped[str] = mapped_column(String, nullable=False)
     conditions: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
-    users: Mapped[list['User']] = relationship('User', secondary='user_permissions', back_populates='direct_permissions')
-    roles: Mapped[list['Role']] = relationship('Role', secondary='role_permissions', back_populates='permissions')
+    users: Mapped[list['User']] = relationship('User', secondary=user_permissions, back_populates='direct_permissions')
+    roles: Mapped[list['Role']] = relationship('Role', secondary=role_permissions, back_populates='permissions')
