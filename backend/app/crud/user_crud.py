@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base_crud import CRUDBase
 from app.models.user_model import User
-from app.schemas.user_schema import UserCreate, UserUpdate, UserBase
+from app.schemas.user_schema import UserCreate, UserUpdate
 from app.core.security import get_hashed_password
 from app.utils.exceptions import NotFoundException
 
@@ -15,15 +15,22 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         try:
             db.add(db_user)
             await db.commit()
+            await db.refresh(db_user)
         except IntegrityError:
             await db.rollback()
         return db_user
 
-    async def get_user(self, *, user_id: int,db: AsyncSession) -> User:
+    async def get_user(self, *, user_id: int, db: AsyncSession) -> User:
         user_obj = await self.get(db=db, id=user_id)
         if not user_obj:
             raise NotFoundException
         return user_obj
+
+    async def get_users(self, *, skip: int = 0, limit: int = 100, db: AsyncSession):
+        stmt = select(User).offset(skip).limit(limit)
+        result = await db.execute(stmt)
+        users = result.scalars().all()
+        return users
 
     async def get_user_by_email_or_username(self, *, identifier: str, db: AsyncSession) -> User | None:
         stmt = select(User).filter(or_(User.username == identifier, User.email == identifier))
@@ -38,9 +45,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return await self.update(obj_current=user_obj, obj_in=obj_in, db=db)
 
     async def delete_user(self, *, user_id: int, db: AsyncSession):
-        user_obj = await self.get(db=db, id=user_id)
-        if not user_obj:
-            raise NotFoundException
         return await self.delete(db=db, id=user_id)
 
 user = CRUDUser(User)
