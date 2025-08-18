@@ -1,5 +1,5 @@
 from typing import Any
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict
 
 
 class OrmBaseModel(BaseModel):
@@ -11,6 +11,13 @@ class PermissionBase(OrmBaseModel):
     description: str | None = None
     resource: str
     action: str
+    conditions: dict[str, Any] | None = None
+
+
+class PermissionUpdate(OrmBaseModel):
+    description: str | None = None
+    resource: str | None = None
+    action: str | None = None
     conditions: dict[str, Any] | None = None
 
 
