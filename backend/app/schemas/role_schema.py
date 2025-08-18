@@ -15,9 +15,14 @@ class RoleCreate(RoleBase):
     pass
 
 
+class RoleUpdate(OrmBaseModel):
+    name: str | None = None
+    description: str | None = None
+
+
 class RoleResponse(RoleBase):
     id: int
 
 
 class RoleDetails(RoleResponse):
-    permissions: list['PermissionResponse'] = []
+    permissions: list[PermissionResponse] = []
