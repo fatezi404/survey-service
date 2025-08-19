@@ -10,7 +10,12 @@ class OrmBaseModel(BaseModel):
 
 class UserBase(OrmBaseModel):
     email: EmailStr
-    username: str = Field(min_length=3, max_length=36)
+    username: str = Field(
+        min_length=3,
+        max_length=36,
+        pattern=r"^[a-zA-Z0-9]{3,36}$",
+        description='Username must be 3-36 characters long and contain only letters and numbers'
+    )
 
 
 class UserCreate(UserBase):
@@ -62,7 +67,7 @@ class UserResponse(UserBase):
 
 
 class UserDetails(UserResponse):
-    roles: list['RoleResponse'] = []
+    roles: list[RoleResponse] = []
 
 
 class UserLogin(OrmBaseModel):
