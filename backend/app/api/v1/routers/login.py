@@ -40,9 +40,16 @@ async def login_access_token(
     try:
         user_auth = await authenticate_user(db=db, data=login_data)
     except UserNotFoundException:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
-        )
+        if "@" in oauth_form.username:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The e-mail address and/or password you specified are not correct",
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The username and/or password you specified are not correct",
+            )
     except WrongPasswordException:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
