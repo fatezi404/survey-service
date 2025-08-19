@@ -1,31 +1,36 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Body, status
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from jose import ExpiredSignatureError
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 
-from app.core.security import create_access_token, create_refresh_token, decode_token
+
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    verify_password,
+    get_hashed_password,
+)
 from app.schemas.token_schema import TokenResponse, TokenResponseWithType
+from app.schemas.user_schema import UserPasswordUpdate
 from app.db.session import get_db, get_redis_db
 from app.models.user_model import User
 from app.crud.user_crud import user
 from app.schemas.user_schema import UserLogin
 from app.services.auth import authenticate_user
-from app.services.token import (
-    add_token_to_redis,
-    get_valid_tokens,
-    delete_token,
-    update_token_in_redis,
-)
-from app.utils.exceptions import NotFoundException, WrongPasswordException
+from app.services.token import get_valid_tokens, update_token_in_redis
+from app.utils.exceptions import WrongPasswordException, UserNotFoundException
 from app.core.config import settings, TokenType
+from app.api.v1.deps import get_current_user
 
 router = APIRouter()
 
 
-@router.post("/access-token", response_model=TokenResponseWithType, tags=["login"])
+@router.post("/access-token", response_model=TokenResponseWithType)
 async def login_access_token(
     redis_client: Annotated[Redis, Depends(get_redis_db)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -34,7 +39,7 @@ async def login_access_token(
     login_data = UserLogin(identifier=oauth_form.username, password=oauth_form.password)
     try:
         user_auth = await authenticate_user(db=db, data=login_data)
-    except NotFoundException:
+    except UserNotFoundException:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
         )
@@ -72,7 +77,7 @@ async def login_access_token(
     return TokenResponseWithType(access_token=access_token, token_type="bearer")
 
 
-@router.post("/new-access-token", response_model=TokenResponseWithType, tags=["login"])
+@router.post("/new-access-token", response_model=TokenResponseWithType)
 async def create_new_access_token(
     redis_client: Annotated[Redis, Depends(get_redis_db)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -115,3 +120,50 @@ async def create_new_access_token(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect token"
         )
     return TokenResponseWithType(access_token=access_token, token_type="bearer")
+
+
+@router.post("/change-password")
+async def change_password(
+    redis_client: Annotated[Redis, Depends(get_redis_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    password_payload: UserPasswordUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    if not verify_password(
+        password_payload.current_password, current_user.hashed_password
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is wrong"
+        )
+
+    new_password_hashed = get_hashed_password(password_payload.new_password)
+    await user.update_user(
+        user_id=current_user.id, obj_in={"hashed_password": new_password_hashed}, db=db
+    )
+
+    access_token = create_access_token(
+        current_user.id, timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    refresh_token = create_refresh_token(
+        current_user.id, timedelta(minutes=settings.REFREsH_TOKEN_EXPIRE_MINUTES)
+    )
+
+    await update_token_in_redis(
+        redis_client,
+        current_user,
+        access_token,
+        TokenType.ACCESS,
+        settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
+    await update_token_in_redis(
+        redis_client,
+        current_user,
+        refresh_token,
+        TokenType.REFRESH,
+        settings.REFRESH_TOKEN_EXPIRE_MINUTES,
+    )
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Password has been changed successfully"},
+    )
