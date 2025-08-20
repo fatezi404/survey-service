@@ -6,7 +6,8 @@ from app.crud.base_crud import CRUDBase
 from app.models.permission_model import Permission
 from app.crud.role_crud import role
 from app.schemas.permission_schema import PermissionCreate, PermissionUpdate
-from utils.exceptions import PermissionNotFoundException
+from utils.exceptions import PermissionNotFoundException, PermissionAlreadyAssignedException, \
+    RoleHasNoThisPermissionException
 
 
 class CRUDPermission(CRUDBase[Permission, PermissionCreate, PermissionUpdate]):
@@ -55,6 +56,8 @@ class CRUDPermission(CRUDBase[Permission, PermissionCreate, PermissionUpdate]):
             role_in_db.roles.append(permission_in_db)
             await db.commit()
             await db.refresh(role_in_db)
+        else:
+            raise PermissionAlreadyAssignedException
 
         return role_in_db
 
@@ -67,6 +70,9 @@ class CRUDPermission(CRUDBase[Permission, PermissionCreate, PermissionUpdate]):
             role_in_db.permissions.remove(permission_in_db)
             await db.commit()
             await db.refresh(role_in_db)
+        else:
+            raise RoleHasNoThisPermissionException
+
         return role_in_db
 
 
