@@ -64,7 +64,7 @@ class CRUDPermission(CRUDBase[Permission, PermissionCreate, PermissionUpdate]):
         permission_in_db = await self.get_permission(db=db, permission_id=permission_id)
         role_in_db = await role.get_role(db=db, role_id=role_id)
         if permission_in_db in role_in_db.permissions:
-            role_in_db.roles.remove(permission_in_db)
+            role_in_db.permissions.remove(permission_in_db)
             await db.commit()
             await db.refresh(role_in_db)
         return role_in_db
