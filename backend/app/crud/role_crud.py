@@ -9,7 +9,7 @@ from app.schemas.role_schema import RoleCreate, RoleUpdate
 from utils.exceptions import RoleNotFoundException
 
 
-class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]): # todo: add permissions
+class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):  # todo: add permissions
     async def create_role(self, *, obj_in: RoleCreate, db: AsyncSession):
         db_role = Role(**obj_in.model_dump())
         try:
@@ -39,26 +39,26 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]): # todo: add permissions
     async def delete_role(self, *, role_id: int, db: AsyncSession):
         return await self.delete(db=db, id=role_id)
 
-    async def assign_role_to_user(self, *, role_id: int, user_id: int, db: AsyncSession):
+    async def assign_role_to_user(
+        self, *, role_id: int, user_id: int, db: AsyncSession
+    ):
         role_in_db = await self.get_role(db=db, role_id=role_id)
         user_in_db = await user.get_user(db=db, user_id=user_id)
-
         if role_in_db not in user_in_db.roles:
             user_in_db.roles.append(role_in_db)
             await db.commit()
             await db.refresh(user_in_db)
-
         return user_in_db
 
-    async def remove_role_from_user(self, *, role_id: int, user_id: int, db: AsyncSession):
+    async def remove_role_from_user(
+        self, *, role_id: int, user_id: int, db: AsyncSession
+    ):
         role_in_db = await self.get_role(db=db, role_id=role_id)
         user_in_db = await user.get_user(db=db, user_id=user_id)
-
         if role_in_db in user_in_db.roles:
             user_in_db.roles.remove(role_in_db)
             await db.commit()
             await db.refresh(user_in_db)
-
         return user_in_db
 
 
