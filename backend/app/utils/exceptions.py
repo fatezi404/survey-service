@@ -18,3 +18,9 @@ class PermissionAlreadyAssignedException(Exception):
 
 class RoleHasNoThisPermissionException(Exception):
     pass
+
+class RoleAlreadyAssignedException(Exception):
+    pass
+
+class UserHasNoThisRoleException(Exception):
+    pass
