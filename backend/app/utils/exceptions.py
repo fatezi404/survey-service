@@ -12,3 +12,9 @@ class UserNotFoundException(Exception):
 
 class PermissionNotFoundException(Exception):
     pass
+
+class PermissionAlreadyAssignedException(Exception):
+    pass
+
+class RoleHasNoThisPermissionException(Exception):
+    pass
