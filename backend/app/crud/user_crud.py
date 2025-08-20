@@ -11,7 +11,7 @@ from app.utils.exceptions import UserNotFoundException
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def create_user(self, *, obj_in: UserCreate, db: AsyncSession) -> User:
-        db_user = User(**obj_in.model_dump(exclude={"password"}))
+        db_user = User(**obj_in.model_dump(exclude={'password'}))
         db_user.hashed_password = get_hashed_password(password=obj_in.password)
         try:
             db.add(db_user)
@@ -33,19 +33,13 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         users = result.scalars().all()
         return users
 
-    async def get_user_by_email_or_username(
-        self, *, identifier: str, db: AsyncSession
-    ) -> User | None:
-        stmt = select(User).filter(
-            or_(User.username == identifier, User.email == identifier)
-        )
+    async def get_user_by_email_or_username(self, *, identifier: str, db: AsyncSession) -> User | None:
+        stmt = select(User).filter(or_(User.username == identifier, User.email == identifier))
         result = await db.execute(stmt)
         user_obj = result.scalar_one_or_none()
         return user_obj
 
-    async def update_user(
-        self, *, user_id: int, obj_in: UserUpdate, db: AsyncSession
-    ) -> User:
+    async def update_user(self, *, user_id: int, obj_in: UserUpdate, db: AsyncSession) -> User:
         user_in_db = await self.get_user(db=db, user_id=user_id)
         return await self.update(obj_current=user_in_db, obj_in=obj_in, db=db)
 
