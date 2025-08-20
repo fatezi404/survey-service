@@ -1,8 +1,8 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-from app.schemas.role_schema import RoleResponse
-
+from app.schemas.role_schema import RoleDetails
+from app.schemas.permission_schema import PermissionResponse
 
 class OrmBaseModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -67,7 +67,8 @@ class UserResponse(UserBase):
 
 
 class UserDetails(UserResponse):
-    roles: list[RoleResponse] = []
+    roles: list[RoleDetails] = []
+    direct_permissions: list[PermissionResponse] = []
 
 
 class UserLogin(OrmBaseModel):
