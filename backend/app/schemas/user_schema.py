@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from app.schemas.role_schema import RoleDetails
 from app.schemas.permission_schema import PermissionResponse
 
+
 class OrmBaseModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -13,8 +14,8 @@ class UserBase(OrmBaseModel):
     username: str = Field(
         min_length=3,
         max_length=36,
-        pattern=r"^[a-zA-Z0-9]{3,36}$",
-        description='Username must be 3-36 characters long and contain only letters and numbers'
+        pattern=r'^[a-zA-Z0-9]{3,36}$',
+        description='Username must be 3-36 characters long and contain only letters and numbers',
     )
 
 
