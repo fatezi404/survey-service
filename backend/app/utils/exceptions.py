@@ -10,6 +10,9 @@ class RoleNotFoundException(Exception):
 class UserNotFoundException(Exception):
     pass
 
+class SurveyNotFoundException(Exception):
+    pass
+
 class PermissionNotFoundException(Exception):
     pass
 
