@@ -16,6 +16,15 @@ class SurveyNotFoundException(Exception):
 class PermissionNotFoundException(Exception):
     pass
 
+class QuestionNotFoundException(Exception):
+    pass
+
+class OptionNotFoundException(Exception):
+    pass
+
+class ResponseNotFoundException(Exception):
+    pass
+
 class PermissionAlreadyAssignedException(Exception):
     pass
 
