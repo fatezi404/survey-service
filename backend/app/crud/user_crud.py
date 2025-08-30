@@ -37,6 +37,8 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         stmt = select(User).filter(or_(User.username == identifier, User.email == identifier))
         result = await db.execute(stmt)
         user_obj = result.scalar_one_or_none()
+        if not user_obj:
+            raise UserNotFoundException
         return user_obj
 
     async def update_user(self, *, user_id: int, obj_in: UserUpdate, db: AsyncSession) -> User:
