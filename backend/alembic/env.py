@@ -7,10 +7,17 @@ from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.db.session import Base
-from app.models import user_model
-from app.models import role_model
-from app.models import permission_model
-from app.models import association_tables
+from app.models import (
+    user_model,
+    role_model,
+    permission_model,
+    association_tables,
+    survey_model,
+    answer_model,
+    option_model,
+    question_model,
+    response_model
+)
 
 load_dotenv()
 
