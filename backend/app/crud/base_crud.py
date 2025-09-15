@@ -47,7 +47,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return obj_current
 
     async def delete(self, *, id: int, db: AsyncSession) -> ModelType:
-        stmt = select(self.model).where(id=id)
+        stmt = select(self.model).where(self.model.id==id)
         result = await db.execute(stmt)
         db_obj = result.scalar_one_or_none()
         if not db_obj:
