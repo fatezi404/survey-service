@@ -10,7 +10,7 @@ class OrmBaseModel(BaseModel):
 
 
 class SurveyBase(OrmBaseModel):
-    title: str = Field(min_length=3)
+    title: str = Field(min_length=3, max_length=64)
     description: str | None = None
     created_at: datetime
     creator_id: int
