@@ -16,8 +16,6 @@ class PermissionBase(OrmBaseModel):
 
 class PermissionUpdate(OrmBaseModel):
     description: str | None = None
-    resource: str | None = None
-    action: str | None = None
     conditions: dict[str, Any] | None = None
 
 
