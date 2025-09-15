@@ -9,7 +9,6 @@ class OrmBaseModel(BaseModel):
 
 
 class QuestionBase(OrmBaseModel):
-    survey_id: int
     text: str
     type: QuestionType
     order: int
