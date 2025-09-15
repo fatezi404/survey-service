@@ -10,8 +10,12 @@ class OptionBase(OrmBaseModel):
     text: str
 
 
-class OptionCreate(OrmBaseModel):
-    text: str
+class OptionCreate(OptionBase):
+    pass
+
+
+class OptionCreateBulk(OrmBaseModel):
+    options: list[OptionCreate]
 
 
 class OptionUpdate(OrmBaseModel):
