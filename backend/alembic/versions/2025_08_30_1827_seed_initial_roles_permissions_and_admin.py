@@ -6,11 +6,11 @@ Create Date: 2025-08-30 18:27:22.249353
 
 """
 from typing import Sequence, Union
-
+from datetime import datetime
 from alembic import op
-import sqlalchemy as sa
 from sqlalchemy.sql import table, column
 
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '169a44b639b4'
@@ -18,6 +18,7 @@ down_revision: Union[str, None] = 'bf4998cc7722'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
+now = datetime.utcnow()
 
 def upgrade() -> None:
     roles_table = table(
@@ -47,7 +48,9 @@ def upgrade() -> None:
         column('email', sa.String),
         column('hashed_password', sa.String),
         column('is_active', sa.Boolean),
-        column('account_verified', sa.Boolean)
+        column('account_verified', sa.Boolean),
+        column('created_at', sa.DateTime),
+        column('updated_at', sa.DateTime)
     )
 
     user_roles_table = table(
@@ -57,11 +60,11 @@ def upgrade() -> None:
     )
 
     op.bulk_insert(roles_table, [
-        {'id': 1, 'name': 'Admin'}
+        {'name': 'Admin'}
     ])
 
     op.bulk_insert(permissions_table, [
-        {'id': 1, 'name': 'admin_all', 'resource': '*', 'action': '*'}
+        {'name': 'admin_all', 'resource': '*', 'action': '*'}
     ])
 
     op.bulk_insert(role_permissions_table, [
@@ -69,9 +72,9 @@ def upgrade() -> None:
     ])
 
     op.bulk_insert(users_table, [
-        {'id': 1, 'username': 'Admin', 'email': 'admin@local.com',
+        {'username': 'Admin', 'email': 'admin@local.com',
          'hashed_password': '$2b$12$XtkK6d5pEREdbWsnkw8diOGnEcDLrp1C1x/Ikuh3MeF2cjeUWwLMO', # Admin1234
-         'is_active': True, 'account_verified': True
+         'is_active': True, 'account_verified': True, 'created_at': now, 'updated_at': now
          }
     ])
 
