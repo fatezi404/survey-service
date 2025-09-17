@@ -1,12 +1,13 @@
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base_crud import CRUDBase
 from app.models.role_model import Role
-from app.crud.user_crud import user
+from app.models.user_model import User
 from app.schemas.role_schema import RoleCreate, RoleUpdate
-from utils.exceptions import RoleNotFoundException
+from app.utils.exceptions import RoleNotFoundException
 
 
 class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):  # todo: add permissions
@@ -21,7 +22,9 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):  # todo: add permissions
         return db_role
 
     async def get_role(self, *, role_id: int, db: AsyncSession) -> Role:
-        role_in_db = await self.get(db=db, id=role_id)
+        stmt = select(Role).options(selectinload(Role.permissions)).where(Role.id == role_id)
+        result = await db.execute(stmt)
+        role_in_db = result.scalar_one_or_none()
         if not role_in_db:
             raise RoleNotFoundException
         return role_in_db
@@ -41,7 +44,14 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):  # todo: add permissions
 
     async def assign_role_to_user(self, *, role_id: int, user_id: int, db: AsyncSession):
         role_in_db = await self.get_role(db=db, role_id=role_id)
-        user_in_db = await user.get_user(db=db, user_id=user_id)
+        stmt = (
+            select(User)
+            .options(selectinload(User.roles).selectinload(Role.permissions),
+                     selectinload(User.direct_permissions))
+            .where(User.id == user_id)
+        )
+        result = await db.execute(stmt)
+        user_in_db = result.scalar_one_or_none()
         if role_in_db not in user_in_db.roles:
             user_in_db.roles.append(role_in_db)
             await db.commit()
@@ -50,7 +60,9 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):  # todo: add permissions
 
     async def remove_role_from_user(self, *, role_id: int, user_id: int, db: AsyncSession):
         role_in_db = await self.get_role(db=db, role_id=role_id)
-        user_in_db = await user.get_user(db=db, user_id=user_id)
+        stmt = select(User).options(selectinload(User.roles)).where(User.id == user_id)
+        result = await db.execute(stmt)
+        user_in_db = result.scalar_one_or_none()
         if role_in_db in user_in_db.roles:
             user_in_db.roles.remove(role_in_db)
             await db.commit()
