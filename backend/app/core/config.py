@@ -10,6 +10,12 @@ class TokenType(str, Enum):
     REFRESH = 'refresh_token'
 
 
+class QuestionType(str, Enum):
+    SINGLE = 'single_choice'
+    MULTIPLE = 'multiple_choice'
+    TEXT = 'text'
+
+
 class Settings(BaseSettings):
     DATABASE_URL: PostgresDsn
     DATABASE_USER: str
@@ -21,8 +27,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 42069
 
-    model_config = SettingsConfigDict(
-        env_file='.env', env_file_encoding='utf-8'
-    )
+    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+
 
 settings = Settings()
