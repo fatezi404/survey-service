@@ -6,7 +6,7 @@ from app.crud.base_crud import CRUDBase
 from app.models.permission_model import Permission
 from app.crud.role_crud import role
 from app.schemas.permission_schema import PermissionCreate, PermissionUpdate
-from utils.exceptions import (
+from app.utils.exceptions import (
     PermissionNotFoundException,
     PermissionAlreadyAssignedException,
     RoleHasNoThisPermissionException,
@@ -48,7 +48,7 @@ class CRUDPermission(CRUDBase[Permission, PermissionCreate, PermissionUpdate]):
         role_in_db = await role.get_role(db=db, role_id=role_id)
 
         if permission_in_db not in role_in_db.permissions:
-            role_in_db.roles.append(permission_in_db)
+            role_in_db.permissions.append(permission_in_db)
             await db.commit()
             await db.refresh(role_in_db)
         else:
