@@ -1,9 +1,11 @@
 from sqlalchemy import select, or_
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base_crud import CRUDBase
 from app.models.user_model import User
+from app.models.role_model import Role
 from app.schemas.user_schema import UserCreate, UserUpdate
 from app.core.security import get_hashed_password
 from app.utils.exceptions import UserNotFoundException
@@ -23,6 +25,18 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     async def get_user(self, *, user_id: int, db: AsyncSession) -> User:
         user_in_db = await self.get(db=db, id=user_id)
+        if not user_in_db:
+            raise UserNotFoundException
+        return user_in_db
+
+    async def get_user_detailed(self, *, user_id: int, db: AsyncSession) -> User:
+        stmt = (
+            select(User)
+            .options(selectinload(User.roles).selectinload(Role.permissions), selectinload(User.direct_permissions))
+            .where(User.id == user_id)
+        )
+        result = await db.execute(stmt)
+        user_in_db = result.scalar_one_or_none()
         if not user_in_db:
             raise UserNotFoundException
         return user_in_db
